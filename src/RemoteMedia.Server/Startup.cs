@@ -1,5 +1,6 @@
 ﻿using MakingSense.AspNet.Documentation;
 using MakingSense.AspNet.HypermediaApi.Formatters;
+using MakingSense.AspNet.HypermediaApi.Metadata;
 using MakingSense.AspNet.HypermediaApi.ValidationFilters;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.FileProviders;
@@ -60,6 +61,33 @@ namespace RemoteMedia.Server
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials()));
+
+            services.AddSwaggerGen();
+
+            services.ConfigureSwaggerDocument(options =>
+            {
+                options.SingleApiVersion(new Swashbuckle.SwaggerGen.Info()
+                {
+                    Version = "current",
+                    Title = "Relay API"
+                });
+                // TODO: take into account these
+                // options.OperationFilter<RelationMetadataOperationFilter>();
+                // options.DocumentFilter<DocumentFilter>();
+            });
+            services.ConfigureSwaggerSchema(options =>
+            {
+                // TODO: move this and other code to a new independent project
+                options.DescribeAllEnumsAsStrings = true;
+                // TODO: take into account this
+                // options.ModelFilter<LinkModelFilter>();
+                options.CustomSchemaIds(T =>
+                    T.GetTypeInfo()
+                    .GetCustomAttributes(false)
+                    .OfType<SchemaAttribute>()
+                    .FirstOrDefault()?.SchemaName
+                    ?? T.Name);
+            });
         }
 
         public void Configure(IApplicationBuilder app, IApplicationEnvironment appEnv, IHostingEnvironment hostEnv, ILoggerFactory loggerFactory)
@@ -72,6 +100,10 @@ namespace RemoteMedia.Server
             app.UseApiErrorHandler();
 
             app.UseMvc();
+
+            app.UseSwaggerGen("swagger/{apiVersion}/swagger.json");
+
+            app.UseSwaggerUi("swagger/ui");
 
             var documentationFilesProvider = new PhysicalFileProvider(appEnv.ApplicationBasePath);
             app.UseDocumentation(new DocumentationOptions()
