@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
+using RemoteMedia.Server.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,14 +22,23 @@ namespace RemoteMedia.Server
     {
         public Startup(IHostingEnvironment env)
         {
-            var builder = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json");
+            // Ugly patch to allow create startup class on tests
+            if (env != null)
+            {
+                var builder = new ConfigurationBuilder()
+                    .AddJsonFile("appsettings.json");
 
-            builder.AddEnvironmentVariables();
-            Configuration = builder.Build().ReloadOnChanged("appsettings.json");
+                // TODO: override configuration depending on environment (Windows of Linux)
+
+                builder.AddEnvironmentVariables();
+                LogginConfiguration = builder.Build().GetSection("Logging");
+                RemoteMediaConfiguration = builder.Build().Get<RemoteMediaConfiguration>();
+            }
         }
 
-        public IConfigurationRoot Configuration { get; set; }
+        public IConfigurationSection LogginConfiguration { private get; set; }
+
+        public RemoteMediaConfiguration RemoteMediaConfiguration { private get; set; }
 
         public void ConfigureServices(IServiceCollection services)
         {
@@ -88,11 +98,13 @@ namespace RemoteMedia.Server
                     .FirstOrDefault()?.SchemaName
                     ?? T.Name);
             });
+
+            services.AddInstance(RemoteMediaConfiguration);
         }
 
         public void Configure(IApplicationBuilder app, IApplicationEnvironment appEnv, IHostingEnvironment hostEnv, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+            loggerFactory.AddConsole(LogginConfiguration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
             app.UseIISPlatformHandler();
