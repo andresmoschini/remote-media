@@ -7,6 +7,7 @@
   "dependencies": {
     "MakingSense.AspNet.Documentation": "0.1.0-rc1-final-14",
     "MakingSense.AspNet.HypermediaApi": "0.1.0-rc1-final-56",
+    "Microsoft.AspNet.Cors": "6.0.0-rc1-final",
     "Microsoft.AspNet.IISPlatformHandler": "1.0.0-rc1-final",
     "Microsoft.AspNet.Mvc": "6.0.0-rc1-final",
     "Microsoft.AspNet.Server.Kestrel": "1.0.0-rc1-final",

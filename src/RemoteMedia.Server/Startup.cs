@@ -53,6 +53,13 @@ namespace RemoteMedia.Server
             // services.AddScoped<CacheDirectory>();
             // services.AddLinkHelper<LinkHelper>();
             // services.AddLogging();
+
+            services.AddCors(options =>
+                options.AddPolicy("Default", builder =>
+                    builder.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials()));
         }
 
         public void Configure(IApplicationBuilder app, IApplicationEnvironment appEnv, IHostingEnvironment hostEnv, ILoggerFactory loggerFactory)
